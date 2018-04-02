@@ -46,6 +46,9 @@ namespace EMotionFX
                     ->Field("AttachmentTarget", &Configuration::m_attachmentTarget)
                     ->Field("AttachmentJointIndex", &Configuration::m_attachmentJointIndex)
                     ->Field("SkinningMethod", &Configuration::m_skinningMethod)
+					->Field("LookAngles", &Configuration::m_lookAngle)
+					->Field("LookBoneName", &Configuration::m_lookBoneName)
+					->Field("LookBoneChainLength", &Configuration::m_lookBoneChainLength)
                 ;
             }
         }
@@ -72,6 +75,7 @@ namespace EMotionFX
                     ->Event("AttachToEntity", &ActorComponentRequestBus::Events::AttachToEntity)
                     ->Event("DetachFromEntity", &ActorComponentRequestBus::Events::DetachFromEntity)
                     ->Event("DebugDrawRoot", &ActorComponentRequestBus::Events::DebugDrawRoot)
+					->Event("SetLookAngle", &ActorComponentRequestBus::Events::SetLookAngle)
                 ;
 
                 behaviorContext->EBus<ActorComponentNotificationBus>("ActorComponentNotificationBus")
@@ -109,7 +113,7 @@ namespace EMotionFX
         //////////////////////////////////////////////////////////////////////////
         void ActorComponent::Activate()
         {
-            m_actorInstance.reset();
+			m_actorInstance.reset();
 
             AZ::Data::AssetBus::Handler::BusDisconnect();
 
@@ -194,6 +198,14 @@ namespace EMotionFX
             m_debugDrawRoot = enable;
         }
 
+		void ActorComponent::SetLookAngle(float angle)
+		{
+			if (m_actorInstance)
+			{
+				m_actorInstance->m_lookAngles = std::min(std::max(angle, -90.0f), 90.0f);
+			}
+		}
+
         //////////////////////////////////////////////////////////////////////////
         void ActorComponent::OnAssetReloaded(AZ::Data::Asset<AZ::Data::AssetData> asset)
         {
@@ -229,6 +241,10 @@ namespace EMotionFX
                     AZ_Error("EMotionFX", actorAsset, "Failed to create actor instance.");
                     return;
                 }
+
+				m_actorInstance->m_lookAngles = m_configuration.m_lookAngle;
+				m_actorInstance->m_lookEffectorBoneName = m_configuration.m_lookBoneName;
+				m_actorInstance->m_lookEffectorChainLength = m_configuration.m_lookBoneChainLength;
 
                 ActorComponentNotificationBus::Event(
                     GetEntityId(),
@@ -386,6 +402,10 @@ namespace EMotionFX
                     const AZ::Transform& worldTransform = GetEntity()->GetTransform()->GetWorldTM();
                     gEnv->pRenderer->GetIRenderAuxGeom()->DrawCone(AZVec3ToLYVec3(worldTransform.GetTranslation() + AZ::Vector3(0.0f, 0.0f, 0.1f)), AZVec3ToLYVec3(worldTransform.GetColumn(1)), 0.05f, 0.5f, Col_Green);
                 }
+
+				m_actorInstance->m_lookAngles = m_configuration.m_lookAngle;
+				m_actorInstance->m_lookEffectorBoneName = m_configuration.m_lookBoneName;
+				m_actorInstance->m_lookEffectorChainLength = m_configuration.m_lookBoneChainLength;
             }
         }
 

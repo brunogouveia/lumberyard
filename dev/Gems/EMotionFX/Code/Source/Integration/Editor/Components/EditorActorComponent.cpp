@@ -47,17 +47,20 @@ namespace EMotionFX
             auto* serializeContext = azrtti_cast<AZ::SerializeContext*>(context);
             if (serializeContext)
             {
-                serializeContext->Class<EditorActorComponent, AzToolsFramework::Components::EditorComponentBase>()
-                    ->Version(1)
-                    ->Field("ActorAsset", &EditorActorComponent::m_actorAsset)
-                    ->Field("MaterialPerLOD", &EditorActorComponent::m_materialPerLOD)
-                    ->Field("AttachmentType", &EditorActorComponent::m_attachmentType)
-                    ->Field("AttachmentTarget", &EditorActorComponent::m_attachmentTarget)
-                    ->Field("AttachmentTargetJoint", &EditorActorComponent::m_attachmentJointName)
-                    ->Field("AttachmentJointIndex", &EditorActorComponent::m_attachmentJointIndex)
-                    ->Field("RenderSkeleton", &EditorActorComponent::m_renderSkeleton)
-                    ->Field("RenderCharacter", &EditorActorComponent::m_renderCharacter)
-                    ->Field("SkinningMethod", &EditorActorComponent::m_skinningMethod)
+				serializeContext->Class<EditorActorComponent, AzToolsFramework::Components::EditorComponentBase>()
+					->Version(1)
+					->Field("ActorAsset", &EditorActorComponent::m_actorAsset)
+					->Field("MaterialPerLOD", &EditorActorComponent::m_materialPerLOD)
+					->Field("AttachmentType", &EditorActorComponent::m_attachmentType)
+					->Field("AttachmentTarget", &EditorActorComponent::m_attachmentTarget)
+					->Field("AttachmentTargetJoint", &EditorActorComponent::m_attachmentJointName)
+					->Field("AttachmentJointIndex", &EditorActorComponent::m_attachmentJointIndex)
+					->Field("RenderSkeleton", &EditorActorComponent::m_renderSkeleton)
+					->Field("RenderCharacter", &EditorActorComponent::m_renderCharacter)
+					->Field("SkinningMethod", &EditorActorComponent::m_skinningMethod)
+					->Field("LookAngles", &EditorActorComponent::m_lookAngles)
+					->Field("LookBoneName", &EditorActorComponent::m_lookBoneName)
+					->Field("LookBoneChainLength", &EditorActorComponent::m_lookBoneChainLength)
                 ;
 
                 AZ::EditContext* editContext = serializeContext->GetEditContext();
@@ -118,10 +121,38 @@ namespace EMotionFX
                         ->Attribute(AZ::Edit::Attributes::Visibility, &EditorActorComponent::AttachmentTargetJointVisibility)
                         ->Attribute(AZ::Edit::Attributes::ChangeNotify, &EditorActorComponent::OnAttachmentTargetJointSelect)
                         ->Attribute(AZ::Edit::Attributes::ButtonText, &EditorActorComponent::AttachmentJointButtonText)
+						->ClassElement(AZ::Edit::ClassElements::Group, "Look Effector")
+						->Attribute(AZ::Edit::Attributes::AutoExpand, true)
+						->DataElement(AZ::Edit::UIHandlers::Slider, &EditorActorComponent::m_lookAngles,
+						"Look Angles", "")
+						->Attribute(AZ::Edit::Attributes::Step, 5.0f)
+						->Attribute(AZ::Edit::Attributes::Min, -90.0f)
+						->Attribute(AZ::Edit::Attributes::Max, 90.0f)
+						->Attribute(AZ::Edit::Attributes::ChangeNotify, &EditorActorComponent::OnLookAnglesChanged)
+						->DataElement(AZ::Edit::UIHandlers::LineEdit, &EditorActorComponent::m_lookBoneName,
+						"Bone Name", "")
+						->Attribute(AZ::Edit::Attributes::ChangeNotify, &EditorActorComponent::OnLookAnglesChanged)
+						->DataElement(AZ::Edit::UIHandlers::Slider, &EditorActorComponent::m_lookBoneChainLength,
+						"Chain Length", "")
+						->Attribute(AZ::Edit::Attributes::Step, 1)
+						->Attribute(AZ::Edit::Attributes::Min, 1)
+						->Attribute(AZ::Edit::Attributes::Max, 3)
+						->Attribute(AZ::Edit::Attributes::ChangeNotify, &EditorActorComponent::OnLookAnglesChanged)
                     ;
                 }
             }
         }
+
+		AZ::Crc32 EditorActorComponent::OnLookAnglesChanged()
+		{
+			if (m_actorInstance)
+			{
+				m_actorInstance->m_lookAngles = m_lookAngles;
+				m_actorInstance->m_lookEffectorBoneName = m_lookBoneName;
+				m_actorInstance->m_lookEffectorChainLength= m_lookBoneChainLength;
+			}
+			return AZ::Edit::PropertyRefreshLevels::AttributesAndValues;
+		}
 
         //////////////////////////////////////////////////////////////////////////
         EditorActorComponent::EditorActorComponent()
@@ -420,6 +451,8 @@ namespace EMotionFX
                 return;
             }
 
+			OnLookAnglesChanged();
+
             // If we are loading the actor for the first time, automatically add the material
             // per lod information. If the amount of lods between different actors that are assigned
             // to this component differ, then reinit the materials.
@@ -577,6 +610,9 @@ namespace EMotionFX
             cfg.m_attachmentTarget = m_attachmentTarget;
             cfg.m_attachmentJointIndex = m_attachmentJointIndex;
             cfg.m_skinningMethod = m_skinningMethod;
+			cfg.m_lookAngle = m_lookAngles;
+			cfg.m_lookBoneName = m_lookBoneName;
+			cfg.m_lookBoneChainLength = m_lookBoneChainLength;
 
             gameEntity->AddComponent(aznew ActorComponent(&cfg));
         }

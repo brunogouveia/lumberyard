@@ -541,6 +541,12 @@ namespace EMotionFX
          */
         void SetAABB(const MCore::AABB& aabb);
 
+		float m_lookAngles = 0.0f;
+		float m_currentLookAngles = 0.0f;
+		AZStd::string m_lookEffectorBoneName;
+		AZ::u32 m_lookEffectorChainLength = 3;
+
+
         //-------------------------------------------------------------------------------------------
 
         /**

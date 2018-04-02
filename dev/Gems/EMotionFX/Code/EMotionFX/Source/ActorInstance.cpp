@@ -571,6 +571,53 @@ namespace EMotionFX
                 }
             }
         }
+
+		auto lerp = [](float a, float b, float s)
+		{
+			if (b > a)
+			{
+				return (a + s > b) ? b : a + s;
+			}
+			else
+			{
+				return (a - s < b) ? b : a - s;
+			}
+		};
+
+		if (m_lookAngles != m_currentLookAngles)
+		{
+			m_currentLookAngles = lerp(m_currentLookAngles, m_lookAngles, 3);
+		}
+
+		auto* head = skeleton->FindNodeByNameNoCase(m_lookEffectorBoneName.c_str());
+		if (!head)
+		{
+			auto boneName = "Jack:" + m_lookEffectorBoneName;
+			head = skeleton->FindNodeByNameNoCase(boneName.c_str());
+		}
+
+		if (head)
+		{
+			const AZ::Vector3 axis(0.0f, 0.0f, 1.0f);
+			const auto angle = m_currentLookAngles;
+			auto nodeIdx = head->GetNodeIndex();
+			for (size_t i = 0; i < m_lookEffectorChainLength; i++)
+			{
+				MCore::Matrix& lm = localMatrices[nodeIdx];
+				MCore::Matrix rot;
+				rot.SetRotationMatrixAxisAngle(axis, MCore::Math::DegreesToRadians(angle / m_lookEffectorChainLength));
+				
+				localMatrices[nodeIdx] = rot * lm;
+
+				nodeIdx = head->GetParentIndex();
+				head = head->GetParentNode();
+				if (!head)
+				{
+					break;
+				}
+			}
+			
+		}
     #endif  // #ifdef EMFX_SCALE_DISABLED
     }
 

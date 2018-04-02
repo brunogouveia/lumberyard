@@ -161,6 +161,11 @@ namespace EMotionFX
             AZStd::string                       m_attachmentJointName;      ///< Joint name on target to which to attach (if ActorAttachment).
             AZ::u32                             m_attachmentJointIndex;
             // \todo attachmentTarget node nr
+			float								m_lookAngles;
+			AZStd::string						m_lookBoneName;
+			AZ::u32								m_lookBoneChainLength;
+
+			AZ::Crc32 OnLookAnglesChanged();
 
             ActorAsset::ActorInstancePtr        m_actorInstance;            ///< Live actor instance.
             AZStd::unique_ptr<ActorRenderNode>  m_renderNode;               ///< Actor render node.

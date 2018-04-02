@@ -53,6 +53,8 @@ namespace EMotionFX
             /// Detach from parent entity, if attached.
             virtual void DetachFromEntity() {}
 
+			virtual void SetLookAngle(float angle) {}
+
             /// Enables debug-drawing of the actor's root.
             virtual void DebugDrawRoot(bool /*enable*/) {}
         };

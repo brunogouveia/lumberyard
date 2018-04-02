@@ -65,6 +65,9 @@ namespace EMotionFX
                 AttachmentType                  m_attachmentType;           ///< Type of attachment.
                 bool                            m_renderSkeleton;           ///< Toggles debug rendering of the skeleton.
                 SkinningMethod                  m_skinningMethod;           ///< The skinning method for this actor
+				float							m_lookAngle;
+				AZStd::string					m_lookBoneName;
+				AZ::u32							m_lookBoneChainLength;
 
                 static void Reflect(AZ::ReflectContext* context);
             };
@@ -94,6 +97,7 @@ namespace EMotionFX
             void AttachToEntity(AZ::EntityId targetEntityId, AttachmentType attachmentType) override;
             void DetachFromEntity() override;
             void DebugDrawRoot(bool enable) override;
+			void SetLookAngle(float angle) override;
             //////////////////////////////////////////////////////////////////////////
 
             //////////////////////////////////////////////////////////////////////////

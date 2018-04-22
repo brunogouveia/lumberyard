@@ -45,6 +45,7 @@
 #include "BlendTreeVector3ComposeNode.h"
 #include "BlendTreeVector4ComposeNode.h"
 #include "BlendTreeTwoLinkIKNode.h"
+#include "BlendTreeFocusAtNode.h"
 #include "BlendTreeLookAtNode.h"
 #include "BlendTreeTransformNode.h"
 #include "BlendTreeAccumTransformNode.h"
@@ -132,6 +133,7 @@ namespace EMotionFX
 
         // controller nodes
         RegisterObjectType(BlendTreeTwoLinkIKNode::Create(nullptr));
+        RegisterObjectType(BlendTreeFocusAtNode::Create(nullptr));
         RegisterObjectType(BlendTreeLookAtNode::Create(nullptr));
         RegisterObjectType(BlendTreeTransformNode::Create(nullptr));
         RegisterObjectType(BlendTreeAccumTransformNode::Create(nullptr));

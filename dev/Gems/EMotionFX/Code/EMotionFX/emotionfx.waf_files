@@ -231,6 +231,8 @@
             "Source/BlendTreeFloatMath2Node.h",
             "Source/BlendTreeFloatSwitchNode.cpp",
             "Source/BlendTreeFloatSwitchNode.h",
+            "Source/BlendTreeFocusAtNode.cpp",
+            "Source/BlendTreeFocusAtNode.h",
             "Source/BlendTreeLookAtNode.cpp",
             "Source/BlendTreeLookAtNode.h",
             "Source/BlendTreeMaskNode.cpp",

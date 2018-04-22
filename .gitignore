@@ -107,6 +107,7 @@
 /dev/Bin64vc120.Debug
 /dev/Bin64vc140
 /dev/Bin64vc140.Debug
+/dev/Bin64vc140.Debug.Dedicated
 /dev/Cache
 /dev/FeatureTests
 /dev/SamplesProject
@@ -129,6 +130,16 @@
 /dev/Code/**/*.ico
 /dev/CloudGemSamples/**/*.ico
 /dev/Tools/**/*.ico
+
+/dev/Editor/*.xml
+*.png
+*.bmp
+*.DLL
+*.ttf
+*.gif
+*.jar
+*.tif
+*.cur
 
 # Misc ignore files
 /dev/SetupAssistantUserPreferences.ini

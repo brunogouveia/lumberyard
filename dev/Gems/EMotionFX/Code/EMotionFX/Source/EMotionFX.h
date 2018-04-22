@@ -70,6 +70,7 @@
 #include "BlendTreeFloatMath1Node.h"
 #include "BlendTreeFloatMath2Node.h"
 #include "BlendTreeFloatSwitchNode.h"
+#include "BlendTreeFocusAtNode.h"
 #include "BlendTreeLookAtNode.h"
 #include "BlendTreeMaskNode.h"
 #include "BlendTreeMirrorPoseNode.h"

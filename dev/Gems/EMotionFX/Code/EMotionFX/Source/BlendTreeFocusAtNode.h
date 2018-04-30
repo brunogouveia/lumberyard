@@ -51,18 +51,22 @@ namespace EMotionFX
 
         enum
         {
-            INPUTPORT_POSE      = 0,
-            INPUTPORT_GOALPOS   = 1,
-            INPUTPORT_WEIGHT    = 2,
-            OUTPUTPORT_POSE     = 0
+            INPUTPORT_POSE          = 0,
+            INPUTPORT_OFFSETPOS     = 1,
+            INPUTPORT_REFERENCEPOS  = 2,
+            INPUTPORT_GOALPOS       = 3,
+            INPUTPORT_WEIGHT        = 4,
+            OUTPUTPORT_POSE         = 0
         };
 
         enum
         {
-            PORTID_INPUT_POSE       = 0,
-            PORTID_INPUT_GOALPOS    = 1,
-            PORTID_INPUT_WEIGHT     = 2,
-            PORTID_OUTPUT_POSE      = 0
+            PORTID_INPUT_POSE           = 0,
+            PORTID_INPUT_OFFSETPOS      = 1,
+            PORTID_INPUT_REFERENCEPOS   = 2,
+            PORTID_INPUT_GOALPOS        = 3,
+            PORTID_INPUT_WEIGHT         = 4,
+            PORTID_OUTPUT_POSE          = 0
         };
 
         class EMFX_API UniqueData

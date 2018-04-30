@@ -61,8 +61,10 @@ namespace EMotionFX
     void BlendTreeFocusAtNode::RegisterPorts()
     {
         // setup the input ports
-        InitInputPorts(3);
+        InitInputPorts(5);
         SetupInputPort("Pose",     INPUTPORT_POSE,     AttributePose::TYPE_ID,             PORTID_INPUT_POSE);
+        SetupInputPort("Offset Pos", INPUTPORT_OFFSETPOS,  MCore::AttributeVector3::TYPE_ID,   PORTID_INPUT_OFFSETPOS);
+        SetupInputPort("Reference Pos", INPUTPORT_REFERENCEPOS,  MCore::AttributeVector3::TYPE_ID,   PORTID_INPUT_REFERENCEPOS);
         SetupInputPort("Goal Pos", INPUTPORT_GOALPOS,  MCore::AttributeVector3::TYPE_ID,   PORTID_INPUT_GOALPOS);
         SetupInputPortAsNumber("Weight", INPUTPORT_WEIGHT, PORTID_INPUT_WEIGHT);
 
@@ -247,6 +249,16 @@ namespace EMotionFX
         SetHasError(animGraphInstance, false);
     #endif
 
+        // get the offset pos
+        OutputIncomingNode(animGraphInstance, GetInputNode(INPUTPORT_OFFSETPOS));
+        const MCore::AttributeVector3* inputOffsetPos = GetInputVector3(animgraphInstance, INPUTPORT_OFFSETPOS);
+        AZ::Vector3 offsetPos = (inputOffsetPos) ? AZ::Vector3(inputOffsetPos->GetValue()) : AZ::Vector3::CreateZero();
+
+        // get the reference pos
+        OutputIncomingNode(animGraphInstance, GetInputNode(INPUTPORT_REFERENCEPOS));
+        const MCore::AttributeVector3* inputReferencePos = GetInputVector3(animgraphInstance, INPUTPORT_REFERENCEPOS);
+        AZ::Vector3 referencePos = (inputReferencePos) ? AZ::Vector3(inputReferencePos->GetValue()) : AZ::Vector3::CreateZero();
+
         // get the goal
         OutputIncomingNode(animGraphInstance, GetInputNode(INPUTPORT_GOALPOS));
         const MCore::AttributeVector3* inputGoalPos = GetInputVector3(animGraphInstance, INPUTPORT_GOALPOS);
@@ -262,42 +274,47 @@ namespace EMotionFX
 
         Skeleton* skeleton = actorInstance->GetActor()->GetSkeleton();
 
-		AZStd::string m_lookEffectorBoneName = "neck";
-		auto* head = skeleton->FindNodeByNameNoCase(m_lookEffectorBoneName.c_str());
-		if (!head)
-		{
-			auto boneName = "Jack:" + m_lookEffectorBoneName;
-			head = skeleton->FindNodeByNameNoCase(boneName.c_str());
-		}
+        // << Compute angle >>
+        auto referenceDirection = referencePos - offsetPos;
+        auto goalDirection = goal - offsetPos;
 
-		if (head)
-		{
-			const AZ::Vector3 axis(0.0f, 0.0f, 1.0f);
-			const auto angle = (weight - 0.5f) * 180.0f;
-			auto nodeIdx = head->GetNodeIndex();
-			for (size_t i = 0; i < 3; i++)
-			{
-				Transform globalTransform = outTransformPose.GetGlobalTransformInclusive(nodeIdx);
-				MCore::Matrix lm = globalTransform.ToMatrix();
-				MCore::Matrix rot;
-				rot.SetRotationMatrixAxisAngle(axis, MCore::Math::DegreesToRadians(angle / 3));
+        // MCore::Matrix referenceLookAt;
+        // referenceLookAt.LookAt(offsetPos, referencePos, AZ::Vector3(0.0f, 0.0f, 1.0f));
+        // MCore::Quaternion referenceDirectionRot = referenceLookAt.Transposed();
+        // referenceLookAt.LookAt(offsetPos, goal, AZ::Vector3(0.0f, 0.0f, 1.0f));
+        // MCore::Quaternion goalDirectionRot = referenceLookAt.Transposed();
 
-				globalTransform.InitFromMatrix(rot * lm);
+        // MCore::Quaternion deltaRotation;
+        const MCore::Quaternion deltaRotation = MCore::Quaternion::CreateDeltaRotation(referenceDirection, goalDirection);
 
-				outTransformPose.SetGlobalTransformInclusive(nodeIdx, globalTransform);
-				outTransformPose.UpdateLocalTransform(nodeIdx);
+        // << Spread angle delta between bones >>
+        {
+            // const AZ::Vector3 axis(0.0f, 0.0f, 1.0f);
+            // const auto angle = (weight - 0.5f) * 180.0f;
+            const auto deltaAngles = (deltaRotation.ToEuler() * weight) / 3;
+            // const auto pitch = deltaAngles.GetX();
+            // const auto yaw = deltaAngles.GetY();
+            // const auto roll = deltaAngles.GetZ();
+            // const auto actualDiffQuat = MCore::Quaternion(pitch, yaw, roll);
+            const auto correctionMatrix = MCore::Matrix::RotationMatrixEulerXYZ(deltaAngles);
+            auto nodeIdx = nodeIndex;
+            auto node = skeleton->FindNodeByID(nodeIdx);
+            for (size_t i = 0; i < 3 && node; i++)
+            {
+                Transform globalTransform = outTransformPose.GetGlobalTransformInclusive(nodeIdx);
+                globalTransform.InitFromMatrix(correctionMatrix * globalTransform.ToMatrix());
 
-				nodeIdx = head->GetParentIndex();
-				head = head->GetParentNode();
-				if (!head)
-				{
-					break;
-				}
-			}
+                outTransformPose.SetGlobalTransformInclusive(nodeIdx, globalTransform);
+                outTransformPose.UpdateLocalTransform(nodeIdx);
 
-		}
-		
-		return;
+                nodeIdx = head->GetParentIndex();
+                node = head->GetParentNode();
+            }
+        }
+
+        // }
+        
+        return;
 
         // Prevent invalid float values inside the LookAt matrix construction when both position and goal are the same
         const AZ::Vector3 diff = globalTransform.mPosition - goal;
